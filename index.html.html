@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 에디슨의 일기</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700&display=swap');
+        :root {
+            --bg-grad: linear-gradient(135deg, #e6f3ff 0%, #f0e6ff 100%);
+            --header-grad: linear-gradient(45deg, #ffb3ba, #ffc9ba);
+            --title-bg: linear-gradient(135deg, #fffbf0, #fff8e1);
+            --question-header-bg: linear-gradient(135deg, #f8f0ff, #fff0f8);
+            --question-answer-bg: #fafcff;
+            --free-note-bg: linear-gradient(135deg, #f0fff3, #f0faff);
+            --main-text: #5c5c5c;
+            --title-text: #8b5a9f;
+            --border-color: #ffb3ba;
+            --font-main: 'Noto Sans KR', sans-serif;
+            --font-handwriting: 'Nanum Pen Script', cursive;
+        }
+        body {
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-grad);
+            color: var(--main-text);
+            line-height: 1.6;
+        }
+        .page {
+            max-width: 800px;
+            background: white;
+            margin: 0 auto;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            position: relative;
+            cursor: default;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--header-grad);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(255, 179, 186, 0.3);
+        }
+        .title { font-size: 24px; font-weight: bold; margin: 0; }
+        .date-display { font-size: 16px; font-weight: bold; }
+        .selection-panel {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+            flex-wrap: wrap;
+            background: var(--title-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .selection-group { display: flex; align-items: center; gap: 10px; }
+        .selection-group .label { font-weight: bold; color: var(--title-text); }
+        .icon-btn { font-size: 28px; cursor: pointer; transition: transform 0.2s ease; }
+        .icon-btn:hover { transform: scale(1.2); }
+        .icon-btn.selected { transform: scale(1.3); filter: drop-shadow(0 0 5px rgba(0,0,0,0.2)); }
+        
+        #questions-container { display: flex; flex-direction: column; gap: 15px; }
+        .question-block {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+            border-left: 5px solid var(--border-color);
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .question-header { background: var(--question-header-bg); padding: 10px 15px; display: flex; align-items: center; gap: 10px; }
+        .question-icon { font-size: 20px; }
+        .question { font-weight: bold; color: var(--title-text); margin: 0; font-size: 16px; flex: 1; }
+        
+        .answer-section {
+            background: var(--question-answer-bg);
+            padding: 15px;
+            border-top: 1px dashed #e0e0e0;
+        }
+        .answer-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            font-family: var(--font-handwriting);
+            color: var(--main-text);
+            resize: vertical;
+            min-height: 40px;
+        }
+        .answer-input:focus { outline: none; }
+        
+        .free-note-block {
+            margin-top: 15px;
+            border: 2px dashed var(--accent, #baffc9);
+            border-radius: 8px;
+            background: var(--free-note-bg);
+        }
+        .free-note-header {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--title-text);
+            text-align: center;
+            padding: 10px;
+        }
+        #free-note-textarea {
+            min-height: 150px;
+            background-image: linear-gradient(#e8e8e8 1px, transparent 1px);
+            background-size: 100% 28px;
+            line-height: 28px;
+            font-size: 18px;
+            font-family: var(--font-main);
+            font-weight: 500;
+        }
+        
+        .action-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .action-btn {
+            background: var(--header-grad);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover { box-shadow: 0 4px 12px rgba(255, 179, 186, 0.5); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="page" id="diaryPage">
+        <div class="header">
+            <h1 class="title">🌟 에디슨의 일기</h1>
+            <div class="date-display" id="dateDisplay"></div>
+        </div>
+        <div class="selection-panel">
+            <div class="selection-group" id="weather-selector">
+                <span class="label">날씨:</span>
+                <span class="icon-btn" data-weather="☀️">☀️</span><span class="icon-btn" data-weather="☁️">☁️</span><span class="icon-btn" data-weather="🌧️">🌧️</span><span class="icon-btn" data-weather="💨">💨</span>
+            </div>
+            <div class="selection-group" id="mood-selector">
+                <span class="label">기분:</span>
+                <span class="icon-btn" data-mood="😊">😊</span><span class="icon-btn" data-mood="😄">😄</span><span class="icon-btn" data-mood="😐">😐</span><span class="icon-btn" data-mood="😢">😢</span><span class="icon-btn" data-mood="🥳">🥳</span>
+            </div>
+        </div>
+
+        <div id="questions-container"></div>
+        
+        <div class="question-block free-note-block">
+            <div class="free-note-header">🎨 오늘의 노트 ✏️</div>
+            <div class="answer-section">
+                <textarea class="answer-input" id="free-note-textarea" placeholder="여기에 그림을 그리거나, 하고 싶은 이야기를 마음껏 써보세요!"></textarea>
+            </div>
+        </div>
+
+        <div class="action-footer">
+            <button class="action-btn" id="saveBtn">오늘 일기 저장하기</button>
+            <button class="action-btn" id="reviewBtn">이달의 일기 보기</button>
+        </div>
+    </div>
+    
+    <script>
+        const NOTION_API_KEY = ' ';
+        const DATABASE_ID = ' ';
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateDisplay = document.getElementById('dateDisplay');
+            const questionsContainer = document.getElementById('questions-container');
+            const questionPool = [
+                { icon: '🧠', text: '오늘 새롭게 알게 된 사실이나 지식이 있나요?' },
+                { icon: '🤔', text: '오늘 가장 많이 했던 생각은 무엇인가요?' },
+                { icon: '🔥', text: '스스로 생각하기에 오늘 가장 열정적으로 했던 일은?' },
+                { icon: '💡', text: '하루를 보내면서 \'아하!\'하고 깨달은 순간이 있었나요?' },
+                { icon: '🎯', text: '오늘 성공적으로 마친 일과, 조금 아쉬웠던 일은 무엇인가요?' },
+                { icon: '🎮', text: '요즘 가장 즐겨 하는 게임은 무엇인가요? 오늘은 어떤 일이 있었어요?' },
+                { icon: '🎹', text: '오늘 혹시 피아노 연습을 했나요? 어떤 곡을 쳤어요?' },
+                { icon: '🏎️', text: '오늘 가장 흥미로웠던 자동차나 기계가 있었나요?' },
+                { icon: '🏆', text: '오늘 하루를 한 단어로 표현한다면? (예: 보람, 피곤, 뿌듯)' }
+            ];
+
+            function displayCurrentDate() {
+                const now = new Date();
+                const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+                dateDisplay.textContent = now.toLocaleDateString('ko-KR', options);
+            }
+
+            function populateRandomQuestions(count = 4) {
+                questionsContainer.innerHTML = '';
+                const shuffled = [...questionPool].sort(() => 0.5 - Math.random());
+                shuffled.slice(0, count).forEach((q, index) => {
+                    const block = document.createElement('div');
+                    block.className = 'question-block';
+                    block.style.animationDelay = `${index * 0.1}s`;
+                    block.innerHTML = `
+                        <div class="question-header">
+                            <span class="question-icon">${q.icon}</span>
+                            <div class="question">${q.text}</div>
+                        </div>
+                        <div class="answer-section">
+                            <textarea class="answer-input" rows="1" data-question-text="${q.text}"></textarea>
+                        </div>`;
+                    questionsContainer.appendChild(block);
+                });
+            }
+
+            function initSelectors() {
+                ['weather', 'mood'].forEach(type => {
+                    const selector = document.getElementById(`${type}-selector`);
+                    selector.addEventListener('click', e => {
+                        if (e.target.classList.contains('icon-btn')) {
+                            selector.querySelectorAll('.icon-btn').forEach(btn => btn.classList.remove('selected'));
+                            e.target.classList.add('selected');
+                        }
+                    });
+                });
+            }
+            
+            document.getElementById('saveBtn').addEventListener('click', async () => {
+                const answers = [];
+                document.querySelectorAll('.answer-input[data-question-text]').forEach(input => {
+                    answers.push(input.value);
+                });
+
+                const diaryData = {
+                    date: new Date().toISOString().split('T')[0],
+                    weather: document.querySelector('#weather-selector .selected')?.dataset.weather || '',
+                    mood: document.querySelector('#mood-selector .selected')?.dataset.mood || '',
+                    answers: answers,
+                    freeNote: document.getElementById('free-note-textarea').value
+                };
+                
+                await saveToNotion(diaryData);
+            });
+
+            async function saveToNotion(data) {
+                const saveBtn = document.getElementById('saveBtn');
+                const originalText = saveBtn.textContent;
+                
+                try {
+                    saveBtn.textContent = '저장 중...';
+                    saveBtn.disabled = true;
+                    
+                    // Netlify Function 호출 (배포 후 실제 URL로 변경 필요)
+                    const response = await fetch('/.netlify/functions/save-to-notion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('일기가 성공적으로 저장되었습니다! ✅');
+                        window.location.reload();
+                    } else {
+                        throw new Error(result.error || '알 수 없는 오류');
+                    }
+                    
+                } catch (error) {
+                    console.error('저장 오류:', error);
+                    alert(`저장 중 오류가 발생했습니다: ${error.message}`);
+                } finally {
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                }
+            }
+            
+            document.getElementById('reviewBtn').style.display = 'none';
+            
+            displayCurrentDate();
+            populateRandomQuestions();
+            initSelectors();
+        });
+    </script>
+</body>
+</html>
